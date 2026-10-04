@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html>
+<html b:css='false' xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/2005/gml/data' xmlns:expr='http://www.google.com/2005/gml/expr'>
+<head>
+  <meta charset='utf-8'/>
+  <meta content='width=device-width, initial-scale=1.0' name='viewport'/>
+  <title><data:view.title/></title>
+  
+  <b:skin><![CDATA[
+    /* ====================================================================
+       JABRA TL V11.5 MODERN NOVEL TEMPLATE - CORE STYLES
+       ==================================================================== */
+    :root {
+      --bg-main: #ffffff;
+      --text-main: #1a1a1a;
+      --accent-color: #2563eb;
+      --border-color: #e5e7eb;
+      --card-bg: #f9fafb;
+      --font-reader: 'Georgia', serif;
+      --reader-size: 18px;
+      --reader-lh: 1.8;
+      --reader-align: left;
+    }
+
+    /* Reading Modes */
+    [data-theme='dark'] {
+      --bg-main: #121212;
+      --text-main: #e0e0e0;
+      --border-color: #2d2d2d;
+      --card-bg: #1e1e1e;
+    }
+    [data-theme='sepia'] {
+      --bg-main: #f4ebd9;
+      --text-main: #5b4636;
+      --border-color: #e0d5c1;
+      --card-bg: #eae0cf;
+    }
+    [data-theme='paper'] {
+      --bg-main: #fbf0d9;
+      --text-main: #222222;
+      --border-color: #ebddc0;
+      --card-bg: #f3e6cd;
+    }
+    [data-theme='gray'] {
+      --bg-main: #242424;
+      --text-main: #cccccc;
+      --border-color: #383838;
+      --card-bg: #2e2e2e;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    /* Top Reading Progress Bar */
+    #progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 4px;
+      background: var(--accent-color);
+      width: 0%;
+      z-index: 1000;
+    }
+
+    /* Navbar Header */
+    header {
+      border-bottom: 1px solid var(--border-color);
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-main);
+    }
+    .brand-title {
+      font-size: 1.25rem;
+      font-weight: bold;
+      color: var(--accent-color);
+      text-decoration: none;
+    }
+
+    /* Reader Sticky Toolbar */
+    .reader-toolbar {
+      position: sticky;
+      top: 0;
+      background: var(--bg-main);
+      border-bottom: 1px solid var(--border-color);
+      padding: 10px 20px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      z-index: 900;
+    }
+    .tb-btn {
+      padding: 6px 12px;
+      border: 1px solid var(--border-color);
+      background: var(--card-bg);
+      color: var(--text-main);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    /* Novel Content Layout */
+    .post-container {
+      max-width: 800px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+    .post-title {
+      font-size: 2rem;
+      margin-bottom: 20px;
+    }
+    .post-body {
+      font-family: var(--font-reader);
+      font-size: var(--reader-size);
+      line-height: var(--reader-lh);
+      text-align: var(--reader-align);
+    }
+    .post-body::first-letter {
+      font-size: 3em;
+      float: left;
+      line-height: 1;
+      padding-right: 8px;
+      color: var(--accent-color);
+    }
+
+    /* Novel Navigation Buttons */
+    .chapter-nav {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border-color);
+    }
+    .nav-btn {
+      padding: 10px 20px;
+      background: var(--accent-color);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 6px;
+    }
+
+    /* Toast Notification */
+    #toast {
+      visibility: hidden;
+      min-width: 200px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 4px;
+      padding: 12px;
+      position: fixed;
+      z-index: 1001;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    #toast.show {
+      visibility: visible;
+      animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    }
+    @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 30px; opacity: 1; } }
+    @keyframes fadeout { from { bottom: 30px; opacity: 1; } to { bottom: 0; opacity: 0; } }
+  ]]></b:skin>
+</head>
+<body>
+  <div id='progress-bar'></div>
+
+  <!-- Header -->
+  <header>
+    <a class='brand-title' expr:href='data:blog.homepageUrl'><data:blog.title/></a>
+  </header>
+
+  <!-- Reader Control Toolbar -->
+  <div class='reader-toolbar'>
+    <button class='tb-btn' onclick='adjustFontSize(2)'>A+</button>
+    <button class='tb-btn' onclick='adjustFontSize(-2)'>A-</button>
+    <button class='tb-btn' onclick='cycleTheme()'>Theme 🎨</button>
+    <button class='tb-btn' onclick='toggleSpeech()'>🔊 TTS</button>
+    <button class='tb-btn' onclick='toggleFullscreen()'>⛶ Fullscreen</button>
+  </div>
+
+  <!-- Main Content Area -->
+  <main class='post-container'>
+    <b:section id='main'>
+      <b:widget id='Blog1' locked='true' type='Blog'>
+        <b:includable id='main'>
+          <b:loop values='data:posts' var='post'>
+            <article class='post'>
+              <h1 class='post-title'><data:post.title/></h1>
+              <div class='post-body' id='post-body'>
+                <data:post.body/>
+              </div>
+            </article>
+
+            <!-- Backend Navigation -->
+            <div class='chapter-nav'>
+              <b:if cond='data:newerPageUrl'>
+                <a class='nav-btn' expr:href='data:newerPageUrl'>← Previous Chapter</a>
+              </b:if>
+              <b:if cond='data:olderPageUrl'>
+                <a class='nav-btn' expr:href='data:olderPageUrl'>Next Chapter →</a>
+              </b:if>
+            </div>
+          </b:loop>
+        </b:includable>
+      </b:widget>
+    </b:section>
+  </main>
+
+  <div id='toast'>Notification</div>
+
+  <!-- Frontend JS Functionalities -->
+  <script>//<![CDATA[
+    // Scroll Progress Indicator
+    window.onscroll = function() {
+      let winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+      let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      let scrolled = (winScroll / height) * 100;
+      document.getElementById("progress-bar").style.width = scrolled + "%";
+    };
+
+    // Theme Switcher Logic
+    const themes = ['light', 'dark', 'sepia', 'paper', 'gray'];
+    let currentThemeIdx = 0;
+    function cycleTheme() {
+      currentThemeIdx = (currentThemeIdx + 1) % themes.length;
+      document.body.setAttribute('data-theme', themes[currentThemeIdx]);
+      showToast("Theme: " + themes[currentThemeIdx].toUpperCase());
+    }
+
+    // Dynamic Font Resizer
+    function adjustFontSize(delta) {
+      const body = document.getElementById('post-body');
+      if (body) {
+        let style = window.getComputedStyle(body).getPropertyValue('font-size');
+        let newSize = parseFloat(style) + delta;
+        body.style.fontSize = newSize + 'px';
+      }
+    }
+
+    // Text To Speech Logic (TTS)
+    let isSpeaking = false;
+    function toggleSpeech() {
+      if ('speechSynthesis' in window) {
+        if (isSpeaking) {
+          window.speechSynthesis.cancel();
+          isSpeaking = false;
+          showToast("TTS Stopped");
+        } else {
+          let text = document.getElementById('post-body').innerText;
+          let msg = new SpeechSynthesisUtterance(text);
+          window.speechSynthesis.speak(msg);
+          isSpeaking = true;
+          showToast("Reading aloud...");
+        }
+      } else {
+        showToast("TTS not supported on this browser");
+      }
+    }
+
+    // Fullscreen Toggle Logic
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    // Toast Popup Engine
+    function showToast(message) {
+      let t = document.getElementById("toast");
+      t.innerText = message;
+      t.className = "show";
+      setTimeout(function(){ t.className = t.className.replace("show", ""); }, 3000);
+    }
+  //]]></script>
+</body>
+</html>
