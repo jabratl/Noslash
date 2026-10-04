@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jabra Novel Reader</title>
+  <style>
+    :root {
+      --bg-main: #ffffff;
+      --text-main: #1a1a1a;
+      --accent-color: #2563eb;
+      --border-color: #e5e7eb;
+      --card-bg: #f9fafb;
+      --font-reader: 'Georgia', serif;
+      --reader-size: 18px;
+      --reader-lh: 1.8;
+    }
+
+    [data-theme='dark'] {
+      --bg-main: #121212;
+      --text-main: #e0e0e0;
+      --border-color: #2d2d2d;
+      --card-bg: #1e1e1e;
+    }
+    [data-theme='sepia'] {
+      --bg-main: #f4ebd9;
+      --text-main: #5b4636;
+      --border-color: #e0d5c1;
+      --card-bg: #eae0cf;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    #progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 4px;
+      background: var(--accent-color);
+      width: 0%;
+      z-index: 1000;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border-color);
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-main);
+    }
+    .brand-title {
+      font-size: 1.25rem;
+      font-weight: bold;
+      color: var(--accent-color);
+      text-decoration: none;
+    }
+
+    .reader-toolbar {
+      position: sticky;
+      top: 0;
+      background: var(--bg-main);
+      border-bottom: 1px solid var(--border-color);
+      padding: 10px 20px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      z-index: 900;
+    }
+    .tb-btn {
+      padding: 6px 12px;
+      border: 1px solid var(--border-color);
+      background: var(--card-bg);
+      color: var(--text-main);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .post-container {
+      max-width: 800px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+    .post-title {
+      font-size: 2rem;
+      margin-bottom: 20px;
+    }
+    .post-body {
+      font-family: var(--font-reader);
+      font-size: var(--reader-size);
+      line-height: var(--reader-lh);
+    }
+    .post-body::first-letter {
+      font-size: 3em;
+      float: left;
+      line-height: 1;
+      padding-right: 8px;
+      color: var(--accent-color);
+    }
+
+    .chapter-nav {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border-color);
+    }
+    .nav-btn {
+      padding: 10px 20px;
+      background: var(--accent-color);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #toast {
+      visibility: hidden;
+      min-width: 200px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 4px;
+      padding: 12px;
+      position: fixed;
+      z-index: 1001;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    #toast.show {
+      visibility: visible;
+      animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    }
+    @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 30px; opacity: 1; } }
+    @keyframes fadeout { from { bottom: 30px; opacity: 1; } to { bottom: 0; opacity: 0; } }
+  </style>
+</head>
+<body>
+
+  <div id="progress-bar"></div>
+
+  <header>
+    <a class="brand-title" href="#">JABRA NOVEL HUB</a>
+  </header>
+
+  <div class="reader-toolbar">
+    <button class="tb-btn" onclick="adjustFontSize(2)">A+</button>
+    <button class="tb-btn" onclick="adjustFontSize(-2)">A-</button>
+    <button class="tb-btn" onclick="cycleTheme()">Theme 🎨</button>
+    <button class="tb-btn" onclick="toggleSpeech()">🔊 TTS</button>
+    <button class="tb-btn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+  </div>
+
+  <main class="post-container">
+    <h1 class="post-title" id="chapter-title">Chapter 1: The Beginning</h1>
+    <div class="post-body" id="post-body">
+      Once upon a time, in a distant land, a new journey began. The sky was clear, and the wind blew gently across the endless fields.
+    </div>
+
+    <div class="chapter-nav">
+      <button class="nav-btn" onclick="prevChapter()">← Previous Chapter</button>
+      <button class="nav-btn" onclick="nextChapter()">Next Chapter →</button>
+    </div>
+  </main>
+
+  <div id="toast">Notification</div>
+
+  <script>
+    // Chapter Data Array
+    const chapters = [
+      {
+        title: "Chapter 1: The Beginning",
+        content: "Once upon a time, in a distant land, a new journey began. The sky was clear, and the wind blew gently across the endless fields."
+      },
+      {
+        title: "Chapter 2: The Rising Power",
+        content: "As days passed, the hidden strength began to awaken. Shadows gathered around the old ruins, waiting for the chosen one."
+      }
+    ];
+
+    let currentChapterIndex = 0;
+
+    function renderChapter() {
+      document.getElementById('chapter-title').innerText = chapters[currentChapterIndex].title;
+      document.getElementById('post-body').innerText = chapters[currentChapterIndex].content;
+      window.scrollTo(0, 0);
+    }
+
+    function nextChapter() {
+      if (currentChapterIndex < chapters.length - 1) {
+        currentChapterIndex++;
+        renderChapter();
+      } else {
+        showToast("You are on the latest chapter!");
+      }
+    }
+
+    function prevChapter() {
+      if (currentChapterIndex > 0) {
+        currentChapterIndex--;
+        renderChapter();
+      } else {
+        showToast("This is the first chapter!");
+      }
+    }
+
+    // Progress Bar
+    window.onscroll = function() {
+      let winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+      let height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      let scrolled = (winScroll / height) * 100;
+      document.getElementById("progress-bar").style.width = scrolled + "%";
+    };
+
+    // Themes
+    const themes = ['light', 'dark', 'sepia'];
+    let themeIdx = 0;
+    function cycleTheme() {
+      themeIdx = (themeIdx + 1) % themes.length;
+      document.body.setAttribute('data-theme', themes[themeIdx]);
+      showToast("Theme: " + themes[themeIdx].toUpperCase());
+    }
+
+    // Dynamic Font Resizer
+    function adjustFontSize(delta) {
+      const body = document.getElementById('post-body');
+      let style = window.getComputedStyle(body).getPropertyValue('font-size');
+      let newSize = parseFloat(style) + delta;
+      body.style.fontSize = newSize + 'px';
+    }
+
+    // TTS Logic
+    let isSpeaking = false;
+    function toggleSpeech() {
+      if ('speechSynthesis' in window) {
+        if (isSpeaking) {
+          window.speechSynthesis.cancel();
+          isSpeaking = false;
+          showToast("TTS Stopped");
+        } else {
+          let text = document.getElementById('post-body').innerText;
+          let msg = new SpeechSynthesisUtterance(text);
+          window.speechSynthesis.speak(msg);
+          isSpeaking = true;
+          showToast("Reading aloud...");
+        }
+      } else {
+        showToast("TTS not supported");
+      }
+    }
+
+    // Fullscreen Toggle
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    // Toast
+    function showToast(msg) {
+      let t = document.getElementById("toast");
+      t.innerText = msg;
+      t.className = "show";
+      setTimeout(() => { t.className = t.className.replace("show", ""); }, 3000);
+    }
+  </script>
+</body>
+</html>
